@@ -1,0 +1,170 @@
+.reports-container {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.stats-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+}
+
+.report-stat-card {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 20px;
+    padding: 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.r-label {
+    color: #94a3b8;
+    font-size: 0.85rem;
+    font-weight: 500;
+    display: block;
+    margin-bottom: 4px;
+}
+
+.r-value {
+    color: #f8fafc;
+    font-size: 1.5rem;
+    font-weight: 700;
+    display: block;
+}
+
+.r-trend {
+    font-size: 0.75rem;
+    color: #10b981;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: 4px;
+}
+
+.r-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.r-icon.rev {
+    background: rgba(99, 102, 241, 0.1);
+    color: #6366f1;
+}
+
+.r-icon.count {
+    background: rgba(139, 92, 246, 0.1);
+    color: #8b5cf6;
+}
+
+.r-icon.gst {
+    background: rgba(16, 185, 129, 0.1);
+    color: #10b981;
+}
+
+.main-table-card {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 20px;
+    padding: 24px;
+}
+
+.card-filters {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 24px;
+}
+
+.date-tabs {
+    display: flex;
+    background: rgba(255, 255, 255, 0.03);
+    padding: 4px;
+    border-radius: 12px;
+}
+
+.date-tabs button {
+    padding: 8px 16px;
+    border: none;
+    background: none;
+    color: #94a3b8;
+    cursor: pointer;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    transition: all 0.2s;
+}
+
+.date-tabs button.active {
+    background: #6366f1;
+    color: white;
+}
+
+.bold {
+    font-weight: 600;
+}
+
+.method-badge {
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.method-badge.cash {
+    background: rgba(16, 185, 129, 0.1);
+    color: #10b981;
+}
+
+.method-badge.upi {
+    background: rgba(99, 102, 241, 0.1);
+    color: #6366f1;
+}
+
+.method-badge.card {
+    background: rgba(245, 158, 11, 0.1);
+    color: #f59e0b;
+}
+
+.view-btn {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #94a3b8;
+    padding: 6px;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.view-btn:hover {
+    color: #f8fafc;
+    border-color: #6366f1;
+}
+
+@media (max-width: 900px) {
+    .stats-row {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 640px) {
+    .card-filters {
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    .date-tabs {
+        width: 100%;
+        overflow-x: auto;
+    }
+
+    .date-tabs button {
+        flex-grow: 1;
+        padding: 8px 12px;
+    }
+}
