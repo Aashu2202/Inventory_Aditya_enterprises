@@ -27,9 +27,4 @@ exports.createOrder = (req, res) => {
     });
 };
 
-exports.getGSTSales = (req, res) => {
-    Order.getGSTSales((err, results) => {
-        if (err) return res.status(500).json({ error: err.message });
-        res.json(results);
-    });
-};
+

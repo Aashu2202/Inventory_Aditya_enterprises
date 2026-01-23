@@ -20,8 +20,6 @@ const PurchaseOrders = () => {
             SupplierID: '',
             InvoiceNumber: `INV-${Date.now().toString().slice(-6)}`,
             PurchaseDate: new Date().toISOString().split('T')[0],
-            IsGST: 1,
-            GSTType: 'CGST_SGST',
             TotalAmount: 0
         },
         details: [],
@@ -54,7 +52,7 @@ const PurchaseOrders = () => {
     const handleAddItem = () => {
         setFormData({
             ...formData,
-            details: [...formData.details, { ProductID: '', Quantity: 1, UnitCost: 0, CGST: 0, SGST: 0, IGST: 0, total: 0 }]
+            details: [...formData.details, { ProductID: '', Quantity: 1, UnitCost: 0, total: 0 }]
         });
     };
 
@@ -66,18 +64,15 @@ const PurchaseOrders = () => {
             const prod = products.find(p => p.ProductID === parseInt(value));
             if (prod) {
                 newDetails[index].UnitCost = prod.UnitPrice;
-                // Auto-set GST if IGST check needed or based on supplier state
+                // Calculate line total (matching SQL PERSISTED logic)
+                const qty = parseFloat(newDetails[index].Quantity) || 0;
+                const cost = parseFloat(newDetails[index].UnitCost) || 0;
+
+                newDetails[index].total = (qty * cost).toFixed(2);
+
+                setFormData({ ...formData, details: newDetails });
             }
         }
-
-        // Calculate line total (matching SQL PERSISTED logic)
-        const qty = parseFloat(newDetails[index].Quantity) || 0;
-        const cost = parseFloat(newDetails[index].UnitCost) || 0;
-        const gst = (parseFloat(newDetails[index].CGST) || 0) + (parseFloat(newDetails[index].SGST) || 0) + (parseFloat(newDetails[index].IGST) || 0);
-
-        newDetails[index].total = (qty * cost + (qty * cost * gst / 100)).toFixed(2);
-
-        setFormData({ ...formData, details: newDetails });
     };
 
     const removeItem = (index) => {
@@ -145,7 +140,6 @@ const PurchaseOrders = () => {
                             <th>Invoice #</th>
                             <th>Supplier</th>
                             <th>Date</th>
-                            <th>GST Type</th>
                             <th>Total Amount</th>
                             <th></th>
                         </tr>
@@ -156,7 +150,6 @@ const PurchaseOrders = () => {
                                 <td className="order-no">{p.InvoiceNumber}</td>
                                 <td>{p.SupplierName}</td>
                                 <td className="date">{new Date(p.PurchaseDate).toLocaleDateString()}</td>
-                                <td><span className="p-status-badge info">{p.GSTType}</span></td>
                                 <td className="amount">₹{p.TotalAmount}</td>
                                 <td><button className="view-btn"><ChevronRight size={18} /></button></td>
                             </tr>
@@ -204,16 +197,7 @@ const PurchaseOrders = () => {
                                         onChange={(e) => setFormData({ ...formData, purchaseData: { ...formData.purchaseData, InvoiceNumber: e.target.value } })}
                                     />
                                 </div>
-                                <div className="form-group">
-                                    <label>GST Type</label>
-                                    <select
-                                        value={formData.purchaseData.GSTType}
-                                        onChange={(e) => setFormData({ ...formData, purchaseData: { ...formData.purchaseData, GSTType: e.target.value } })}
-                                    >
-                                        <option value="CGST_SGST">CGST + SGST (Local)</option>
-                                        <option value="IGST">IGST (Inter-state)</option>
-                                    </select>
-                                </div>
+
                             </div>
 
                             <div className="items-section">
@@ -226,7 +210,7 @@ const PurchaseOrders = () => {
 
                                 <div className="items-list">
                                     {formData.details.map((item, index) => (
-                                        <div key={index} className="po-item-row" style={{ gridTemplateColumns: '2fr 1fr 1fr 1fr 1fr 1fr 1fr 40px' }}>
+                                        <div key={index} className="po-item-row" style={{ gridTemplateColumns: '3fr 1fr 1fr 1fr 40px' }}>
                                             <div className="item-field">
                                                 <select
                                                     value={item.ProductID}
@@ -243,20 +227,6 @@ const PurchaseOrders = () => {
                                             <div className="item-field">
                                                 <input type="number" placeholder="Cost" value={item.UnitCost} onChange={(e) => updateItem(index, 'UnitCost', e.target.value)} required />
                                             </div>
-                                            {formData.purchaseData.GSTType === 'CGST_SGST' ? (
-                                                <>
-                                                    <div className="item-field">
-                                                        <input type="number" placeholder="CGST%" value={item.CGST} onChange={(e) => updateItem(index, 'CGST', e.target.value)} />
-                                                    </div>
-                                                    <div className="item-field">
-                                                        <input type="number" placeholder="SGST%" value={item.SGST} onChange={(e) => updateItem(index, 'SGST', e.target.value)} />
-                                                    </div>
-                                                </>
-                                            ) : (
-                                                <div className="item-field" style={{ gridColumn: 'span 2' }}>
-                                                    <input type="number" placeholder="IGST%" value={item.IGST} onChange={(e) => updateItem(index, 'IGST', e.target.value)} />
-                                                </div>
-                                            )}
                                             <div className="item-field total">₹{item.total}</div>
                                             <button type="button" onClick={() => removeItem(index)} className="remove-item-btn"><X size={14} /></button>
                                         </div>

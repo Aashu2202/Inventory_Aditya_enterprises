@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { X, Building2, User, Phone, Mail, MapPin, Hash, Globe } from 'lucide-react';
+import { X } from 'lucide-react';
 import '../styles/Modals.css';
 
 const AddCustomerModal = ({ isOpen, onClose, onCustomerAdded, initialData = null }) => {
@@ -9,7 +9,6 @@ const AddCustomerModal = ({ isOpen, onClose, onCustomerAdded, initialData = null
         CompanyName: '',
         Phone: '',
         Email: '',
-        GSTIN: '',
         Address: '',
         City: '',
         State: ''
@@ -26,7 +25,6 @@ const AddCustomerModal = ({ isOpen, onClose, onCustomerAdded, initialData = null
                     CompanyName: '',
                     Phone: '',
                     Email: '',
-                    GSTIN: '',
                     Address: '',
                     City: '',
                     State: ''
@@ -66,95 +64,65 @@ const AddCustomerModal = ({ isOpen, onClose, onCustomerAdded, initialData = null
                     <div className="form-grid">
                         <div className="form-group full-width">
                             <label>Customer/Company Name <span className="required">*</span></label>
-                            <div className="input-with-icon">
-                                <Building2 size={18} />
-                                <input
-                                    type="text"
-                                    placeholder="e.g. Acme Corp or John Doe"
-                                    value={formData.CompanyName}
-                                    onChange={(e) => setFormData({ ...formData, CompanyName: e.target.value })}
-                                    required
-                                />
-                            </div>
+                            <input
+                                type="text"
+                                placeholder="e.g. Acme Corp or John Doe"
+                                value={formData.CompanyName}
+                                onChange={(e) => setFormData({ ...formData, CompanyName: e.target.value })}
+                                required
+                            />
                         </div>
 
                         <div className="form-group">
                             <label>Phone Number</label>
-                            <div className="input-with-icon">
-                                <Phone size={18} />
-                                <input
-                                    type="text"
-                                    value={formData.Phone}
-                                    onChange={(e) => setFormData({ ...formData, Phone: e.target.value })}
-                                    placeholder="Enter contact number"
-                                />
-                            </div>
+                            <input
+                                type="text"
+                                value={formData.Phone}
+                                onChange={(e) => setFormData({ ...formData, Phone: e.target.value })}
+                                placeholder="Enter contact number"
+                            />
                         </div>
 
                         <div className="form-group">
                             <label>Email ID</label>
-                            <div className="input-with-icon">
-                                <Mail size={18} />
-                                <input
-                                    type="email"
-                                    value={formData.Email}
-                                    onChange={(e) => setFormData({ ...formData, Email: e.target.value })}
-                                    placeholder="customer@example.com"
-                                />
-                            </div>
+                            <input
+                                type="email"
+                                value={formData.Email}
+                                onChange={(e) => setFormData({ ...formData, Email: e.target.value })}
+                                placeholder="customer@example.com"
+                            />
                         </div>
 
-                        <div className="form-group">
-                            <label>GSTIN</label>
-                            <div className="input-with-icon">
-                                <Hash size={18} />
-                                <input
-                                    type="text"
-                                    value={formData.GSTIN}
-                                    onChange={(e) => setFormData({ ...formData, GSTIN: e.target.value })}
-                                    placeholder="22AAAAA0000A1Z5"
-                                />
-                            </div>
-                        </div>
+
 
                         <div className="form-group">
                             <label>City</label>
-                            <div className="input-with-icon">
-                                <Globe size={18} />
-                                <input
-                                    type="text"
-                                    value={formData.City}
-                                    onChange={(e) => setFormData({ ...formData, City: e.target.value })}
-                                    placeholder="e.g. Mumbai"
-                                />
-                            </div>
+                            <input
+                                type="text"
+                                value={formData.City}
+                                onChange={(e) => setFormData({ ...formData, City: e.target.value })}
+                                placeholder="e.g. Mumbai"
+                            />
                         </div>
 
                         <div className="form-group">
                             <label>State</label>
-                            <div className="input-with-icon">
-                                <Globe size={18} />
-                                <input
-                                    type="text"
-                                    value={formData.State}
-                                    onChange={(e) => setFormData({ ...formData, State: e.target.value })}
-                                    placeholder="e.g. Maharashtra"
-                                />
-                            </div>
+                            <input
+                                type="text"
+                                value={formData.State}
+                                onChange={(e) => setFormData({ ...formData, State: e.target.value })}
+                                placeholder="e.g. Maharashtra"
+                            />
                         </div>
 
                         <div className="form-group full-width">
                             <label>Address</label>
-                            <div className="input-with-icon">
-                                <MapPin size={18} />
-                                <textarea
-                                    value={formData.Address}
-                                    onChange={(e) => setFormData({ ...formData, Address: e.target.value })}
-                                    placeholder="Complete billing address"
-                                    rows="2"
-                                    style={{ width: '100%', background: 'transparent', border: 'none', color: 'white', padding: '10px 0' }}
-                                ></textarea>
-                            </div>
+                            <textarea
+                                value={formData.Address}
+                                onChange={(e) => setFormData({ ...formData, Address: e.target.value })}
+                                placeholder="Complete billing address"
+                                rows="2"
+                            ></textarea>
                         </div>
                     </div>
 

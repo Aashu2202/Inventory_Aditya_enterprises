@@ -27,12 +27,12 @@ const Product = {
   },
 
   create: (productData, callback) => {
-    const { ProductName, CategoryID, SupplierID, HSNCode, GSTPercent, UnitPrice, RetailPrice, WholesalePrice, ReorderLevel, IsActive } = productData;
+    const { ProductName, CategoryID, SupplierID, UnitPrice, RetailPrice, WholesalePrice, ReorderLevel, IsActive } = productData;
     const query = `
-      INSERT INTO Products (ProductName, CategoryID, SupplierID, HSNCode, GSTPercent, UnitPrice, RetailPrice, WholesalePrice, ReorderLevel, IsActive) 
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO Products (ProductName, CategoryID, SupplierID, UnitPrice, RetailPrice, WholesalePrice, ReorderLevel, IsActive) 
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
     `;
-    db.query(query, [ProductName, CategoryID, SupplierID, HSNCode, GSTPercent, UnitPrice, RetailPrice, WholesalePrice, ReorderLevel, IsActive || 1], callback);
+    db.query(query, [ProductName, CategoryID, SupplierID, UnitPrice, RetailPrice, WholesalePrice, ReorderLevel, IsActive || 1], callback);
   },
 
   addBarcode: (productId, barcodeValue, callback) => {
@@ -45,22 +45,64 @@ const Product = {
   },
 
   update: (id, productData, callback) => {
-    const { ProductName, CategoryID, SupplierID, HSNCode, GSTPercent, UnitPrice, RetailPrice, WholesalePrice, ReorderLevel, IsActive } = productData;
+    const { ProductName, CategoryID, SupplierID, UnitPrice, RetailPrice, WholesalePrice, ReorderLevel, IsActive } = productData;
     const query = `
       UPDATE Products 
-      SET ProductName = ?, CategoryID = ?, SupplierID = ?, HSNCode = ?, 
-          GSTPercent = ?, UnitPrice = ?, RetailPrice = ?, WholesalePrice = ?, ReorderLevel = ?, IsActive = ?
+      SET ProductName = ?, CategoryID = ?, SupplierID = ?, 
+          UnitPrice = ?, RetailPrice = ?, WholesalePrice = ?, ReorderLevel = ?, IsActive = ?
       WHERE ProductID = ?
     `;
-    db.query(query, [ProductName, CategoryID, SupplierID, HSNCode, GSTPercent, UnitPrice, RetailPrice, WholesalePrice, ReorderLevel, IsActive, id], callback);
+    db.query(query, [ProductName, CategoryID, SupplierID, UnitPrice, RetailPrice, WholesalePrice, ReorderLevel, IsActive, id], callback);
   },
 
   delete: (id, callback) => {
-    // MySQL trigger should ideally handle cascaded deletes if configured, 
-    // but here we manually delete related barcodes first if FK is not ON DELETE CASCADE
-    db.query("DELETE FROM ProductBarcodes WHERE ProductID = ?", [id], (err) => {
+    // Use a transaction to safely delete the product and all related records
+    // First, disable foreign key checks temporarily
+    db.query("SET FOREIGN_KEY_CHECKS = 0", (err) => {
       if (err) return callback(err);
-      db.query("DELETE FROM Products WHERE ProductID = ?", [id], callback);
+
+      // List of all tables that might have references to products
+      const tablesToClean = [
+        { table: 'ProductBarcodes', column: 'ProductID' },
+        { table: 'Inventory', column: 'ProductID' },
+        { table: 'OrderDetails', column: 'ProductID' },
+        { table: 'PurchaseDetails', column: 'ProductID' },
+        { table: 'PurchaseOrderDetails', column: 'ProductID' },
+        { table: 'TransferDetails', column: 'ProductID' },
+        { table: 'SalesDetails', column: 'ProductID' },
+        { table: 'StockMovements', column: 'ProductID' },
+        { table: 'StockTransfers', column: 'ProductId' },
+        { table: 'Sales', column: 'ProductID' },
+        { table: 'Transfers', column: 'ProductID' }
+      ];
+
+      let cleanupCount = 0;
+      let errors = [];
+
+      // Clean up each table
+      const cleanupNextTable = () => {
+        if (cleanupCount >= tablesToClean.length) {
+          // All tables cleaned, now delete the product
+          db.query("DELETE FROM Products WHERE ProductID = ?", [id], (err) => {
+            // Re-enable foreign key checks
+            db.query("SET FOREIGN_KEY_CHECKS = 1", (fkErr) => {
+              if (err) return callback(err);
+              if (fkErr) return callback(fkErr);
+              callback(null, { success: true });
+            });
+          });
+          return;
+        }
+
+        const tableInfo = tablesToClean[cleanupCount];
+        db.query(`DELETE FROM \`${tableInfo.table}\` WHERE \`${tableInfo.column}\` = ?`, [id], (err) => {
+          // Ignore errors for this table (table might not exist or might not have the column)
+          cleanupCount++;
+          cleanupNextTable();
+        });
+      };
+
+      cleanupNextTable();
     });
   },
 

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { X, Barcode, Hash, Tag, IndianRupee, Package, User } from 'lucide-react';
+import { X } from 'lucide-react';
 import '../styles/Modals.css';
 
 const AddProductModal = ({ isOpen, onClose, onProductAdded, initialData = null }) => {
@@ -105,46 +105,41 @@ const AddProductModal = ({ isOpen, onClose, onProductAdded, initialData = null }
                     <div className="form-grid">
                         <div className="form-group full-width">
                             <label>Product Name <span className="required">*</span></label>
-                            <div className="input-with-icon">
-                                <Package size={18} />
-                                <input
-                                    type="text"
-                                    placeholder="e.g. Syska LED Bulb 9W"
-                                    value={formData.ProductName}
-                                    onChange={(e) => setFormData({ ...formData, ProductName: e.target.value })}
-                                    required
-                                />
-                            </div>
+                            <input
+                                type="text"
+                                placeholder="e.g. Syska LED Bulb 9W"
+                                value={formData.ProductName}
+                                onChange={(e) => setFormData({ ...formData, ProductName: e.target.value })}
+                                required
+                            />
                         </div>
 
                         <div className="form-group">
                             <label>HSN Code</label>
-                            <div className="input-with-icon">
-                                <Hash size={18} />
-                                <input
-                                    type="text"
-                                    value={formData.HSNCode}
-                                    onChange={(e) => setFormData({ ...formData, HSNCode: e.target.value })}
-                                    placeholder="e.g. 8539"
-                                />
-                            </div>
+                            <input
+                                type="text"
+                                value={formData.HSNCode}
+                                onChange={(e) => setFormData({ ...formData, HSNCode: e.target.value })}
+                                placeholder="e.g. 8539"
+                            />
                         </div>
 
                         {!isEdit && (
                             <div className="form-group">
                                 <label>Barcode / EAN</label>
-                                <div className="input-with-icon">
-                                    <Barcode size={18} />
+                                <div style={{ position: 'relative', display: 'flex', gap: '8px', alignItems: 'center' }}>
                                     <input
                                         type="text"
                                         value={formData.Barcode}
                                         onChange={(e) => setFormData({ ...formData, Barcode: e.target.value })}
                                         placeholder="Scan or auto-gen"
+                                        style={{ flex: 1 }}
                                     />
                                     <button
                                         type="button"
                                         className="auto-gen-btn"
                                         onClick={() => setFormData({ ...formData, Barcode: generateBarcode() })}
+                                        style={{ position: 'relative', right: 'auto' }}
                                     >
                                         Auto
                                     </button>
@@ -154,66 +149,54 @@ const AddProductModal = ({ isOpen, onClose, onProductAdded, initialData = null }
 
                         <div className="form-group">
                             <label>Category <span className="required">*</span></label>
-                            <div className="input-with-icon">
-                                <Tag size={18} />
-                                <select
-                                    value={formData.CategoryID}
-                                    onChange={(e) => setFormData({ ...formData, CategoryID: e.target.value })}
-                                    required
-                                >
-                                    <option value="">Select Category</option>
-                                    {categories.map(c => (
-                                        <option key={c.CategoryID} value={c.CategoryID}>{c.CategoryName}</option>
-                                    ))}
-                                </select>
-                            </div>
+                            <select
+                                value={formData.CategoryID}
+                                onChange={(e) => setFormData({ ...formData, CategoryID: e.target.value })}
+                                required
+                            >
+                                <option value="">Select Category</option>
+                                {categories.map(c => (
+                                    <option key={c.CategoryID} value={c.CategoryID}>{c.CategoryName}</option>
+                                ))}
+                            </select>
                         </div>
 
                         <div className="form-group">
                             <label>Primary Supplier <span className="required">*</span></label>
-                            <div className="input-with-icon">
-                                <User size={18} />
-                                <select
-                                    value={formData.SupplierID}
-                                    onChange={(e) => setFormData({ ...formData, SupplierID: e.target.value })}
-                                    required
-                                >
-                                    <option value="">Select Supplier</option>
-                                    {suppliers.map(s => (
-                                        <option key={s.SupplierID} value={s.SupplierID}>{s.CompanyName}</option>
-                                    ))}
-                                </select>
-                            </div>
+                            <select
+                                value={formData.SupplierID}
+                                onChange={(e) => setFormData({ ...formData, SupplierID: e.target.value })}
+                                required
+                            >
+                                <option value="">Select Supplier</option>
+                                {suppliers.map(s => (
+                                    <option key={s.SupplierID} value={s.SupplierID}>{s.CompanyName}</option>
+                                ))}
+                            </select>
                         </div>
 
                         <div className="form-group">
                             <label>Retail Price <span className="required">*</span></label>
-                            <div className="input-with-icon">
-                                <IndianRupee size={18} />
-                                <input
-                                    type="number"
-                                    step="0.01"
-                                    placeholder="e.g. 299.99"
-                                    value={formData.RetailPrice}
-                                    onChange={(e) => setFormData({ ...formData, RetailPrice: e.target.value })}
-                                    required
-                                />
-                            </div>
+                            <input
+                                type="number"
+                                step="0.01"
+                                placeholder="e.g. 299.99"
+                                value={formData.RetailPrice}
+                                onChange={(e) => setFormData({ ...formData, RetailPrice: e.target.value })}
+                                required
+                            />
                         </div>
 
                         <div className="form-group">
                             <label>Wholesale Price <span className="required">*</span></label>
-                            <div className="input-with-icon">
-                                <IndianRupee size={18} />
-                                <input
-                                    type="number"
-                                    step="0.01"
-                                    placeholder="e.g. 249.99"
-                                    value={formData.WholesalePrice}
-                                    onChange={(e) => setFormData({ ...formData, WholesalePrice: e.target.value })}
-                                    required
-                                />
-                            </div>
+                            <input
+                                type="number"
+                                step="0.01"
+                                placeholder="e.g. 249.99"
+                                value={formData.WholesalePrice}
+                                onChange={(e) => setFormData({ ...formData, WholesalePrice: e.target.value })}
+                                required
+                            />
                         </div>
                     </div>
 

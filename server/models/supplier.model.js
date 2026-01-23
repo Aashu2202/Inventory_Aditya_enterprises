@@ -10,22 +10,22 @@ const Supplier = {
     },
 
     create: (data, callback) => {
-        const { CompanyName, ContactName, Phone, Email, GSTIN, Address, City, State, Country } = data;
+        const { CompanyName, ContactName, Phone, Email, Address, City, State, Country } = data;
         const query = `
-      INSERT INTO Suppliers (CompanyName, ContactName, Phone, Email, GSTIN, Address, City, State, Country)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO Suppliers (CompanyName, ContactName, Phone, Email, Address, City, State, Country)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
     `;
-        db.query(query, [CompanyName, ContactName, Phone, Email, GSTIN, Address, City, State, Country || 'India'], callback);
+        db.query(query, [CompanyName, ContactName, Phone, Email, Address, City, State, Country || 'India'], callback);
     },
 
     update: (id, data, callback) => {
-        const { CompanyName, ContactName, Phone, Email, GSTIN, Address, City, State, Country } = data;
+        const { CompanyName, ContactName, Phone, Email, Address, City, State, Country } = data;
         const query = `
       UPDATE Suppliers 
-      SET CompanyName = ?, ContactName = ?, Phone = ?, Email = ?, GSTIN = ?, Address = ?, City = ?, State = ?, Country = ?
+      SET CompanyName = ?, ContactName = ?, Phone = ?, Email = ?, Address = ?, City = ?, State = ?, Country = ?
       WHERE SupplierID = ?
     `;
-        db.query(query, [CompanyName, ContactName, Phone, Email, GSTIN, Address, City, State, Country, id], callback);
+        db.query(query, [CompanyName, ContactName, Phone, Email, Address, City, State, Country, id], callback);
     },
 
     delete: (id, callback) => {

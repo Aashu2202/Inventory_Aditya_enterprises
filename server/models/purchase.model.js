@@ -38,7 +38,7 @@ const Purchase = {
     },
 
     create: (purchaseData, details, warehouseID, callback) => {
-        const { SupplierID, InvoiceNumber, PurchaseDate, IsGST, GSTType, TotalAmount } = purchaseData;
+        const { SupplierID, InvoiceNumber, PurchaseDate, TotalAmount } = purchaseData;
 
         db.getConnection((err, connection) => {
             if (err) return callback(err);
@@ -50,11 +50,11 @@ const Purchase = {
                 }
 
                 const purchaseQuery = `
-          INSERT INTO Purchases (SupplierID, InvoiceNumber, PurchaseDate, IsGST, GSTType, TotalAmount)
-          VALUES (?, ?, ?, ?, ?, ?)
+          INSERT INTO Purchases (SupplierID, InvoiceNumber, PurchaseDate, TotalAmount)
+          VALUES (?, ?, ?, ?)
         `;
 
-                connection.query(purchaseQuery, [SupplierID, InvoiceNumber, PurchaseDate || new Date(), IsGST, GSTType, TotalAmount], (err, result) => {
+                connection.query(purchaseQuery, [SupplierID, InvoiceNumber, PurchaseDate || new Date(), TotalAmount], (err, result) => {
                     if (err) {
                         return connection.rollback(() => {
                             connection.release();
@@ -64,11 +64,11 @@ const Purchase = {
 
                     const purchaseID = result.insertId;
                     const detailsQuery = `
-            INSERT INTO PurchaseDetails (PurchaseID, ProductID, Quantity, UnitCost, CGST, SGST, IGST)
+            INSERT INTO PurchaseDetails (PurchaseID, ProductID, Quantity, UnitCost)
             VALUES ?
           `;
 
-                    const detailsValues = details.map(d => [purchaseID, d.ProductID, d.Quantity, d.UnitCost, d.CGST || 0, d.SGST || 0, d.IGST || 0]);
+                    const detailsValues = details.map(d => [purchaseID, d.ProductID, d.Quantity, d.UnitCost]);
 
                     connection.query(detailsQuery, [detailsValues], (err) => {
                         if (err) {
