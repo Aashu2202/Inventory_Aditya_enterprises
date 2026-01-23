@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { X, IndianRupee, Tag, FileText, Landmark, Calendar } from 'lucide-react';
+import { X } from 'lucide-react';
 import '../styles/Modals.css';
 
 const AddExpenseModal = ({ isOpen, onClose, onExpenseAdded }) => {
@@ -59,91 +59,72 @@ const AddExpenseModal = ({ isOpen, onClose, onExpenseAdded }) => {
                     <div className="form-grid">
                         <div className="form-group">
                             <label>Expense Category <span className="required">*</span></label>
-                            <div className="input-with-icon">
-                                <Tag size={18} />
-                                <select
-                                    value={formData.Category}
-                                    onChange={(e) => setFormData({ ...formData, Category: e.target.value })}
-                                    required
-                                >
-                                    <option value="">Select Category</option>
-                                    {expenseCategories.map(cat => <option key={cat} value={cat}>{cat}</option>)}
-                                    <option value="Custom">Custom...</option>
-                                </select>
-                            </div>
+                            <select
+                                value={formData.Category}
+                                onChange={(e) => setFormData({ ...formData, Category: e.target.value })}
+                                required
+                            >
+                                <option value="">Select Category</option>
+                                {expenseCategories.map(cat => <option key={cat} value={cat}>{cat}</option>)}
+                                <option value="Custom">Custom...</option>
+                            </select>
                         </div>
 
                         {formData.Category === 'Custom' && (
                             <div className="form-group">
                                 <label>Custom Category Name</label>
-                                <div className="input-with-icon">
-                                    <Tag size={18} />
-                                    <input
-                                        type="text"
-                                        placeholder="Enter category name"
-                                        onChange={(e) => setFormData({ ...formData, Category: e.target.value })}
-                                    />
-                                </div>
+                                <input
+                                    type="text"
+                                    placeholder="Enter category name"
+                                    onChange={(e) => setFormData({ ...formData, Category: e.target.value })}
+                                />
                             </div>
                         )}
 
                         <div className="form-group">
                             <label>Amount (₹) <span className="required">*</span></label>
-                            <div className="input-with-icon">
-                                <IndianRupee size={18} />
-                                <input
-                                    type="number"
-                                    value={formData.Amount}
-                                    onChange={(e) => setFormData({ ...formData, Amount: e.target.value })}
-                                    required
-                                    placeholder="0.00"
-                                />
-                            </div>
+                            <input
+                                type="number"
+                                value={formData.Amount}
+                                onChange={(e) => setFormData({ ...formData, Amount: e.target.value })}
+                                required
+                                placeholder="0.00"
+                            />
                         </div>
 
                         <div className="form-group">
                             <label>Paid From <span className="required">*</span></label>
-                            <div className="input-with-icon">
-                                <Landmark size={18} />
-                                <select
-                                    value={formData.AccountID}
-                                    onChange={(e) => setFormData({ ...formData, AccountID: e.target.value })}
-                                    required
-                                >
-                                    <option value="">Select Account</option>
-                                    {accounts.map(acc => (
-                                        <option key={acc.AccountID} value={acc.AccountID}>
-                                            {acc.AccountName} (₹{acc.Balance})
-                                        </option>
-                                    ))}
-                                </select>
-                            </div>
+                            <select
+                                value={formData.AccountID}
+                                onChange={(e) => setFormData({ ...formData, AccountID: e.target.value })}
+                                required
+                            >
+                                <option value="">Select Account</option>
+                                {accounts.map(acc => (
+                                    <option key={acc.AccountID} value={acc.AccountID}>
+                                        {acc.AccountName} (₹{acc.Balance})
+                                    </option>
+                                ))}
+                            </select>
                         </div>
 
                         <div className="form-group">
                             <label>Date</label>
-                            <div className="input-with-icon">
-                                <Calendar size={18} />
-                                <input
-                                    type="date"
-                                    value={formData.ExpenseDate}
-                                    onChange={(e) => setFormData({ ...formData, ExpenseDate: e.target.value })}
-                                />
-                            </div>
+                            <input
+                                type="date"
+                                value={formData.ExpenseDate}
+                                onChange={(e) => setFormData({ ...formData, ExpenseDate: e.target.value })}
+                            />
                         </div>
 
                         <div className="form-group full-width">
                             <label>Description / Remarks</label>
-                            <div className="input-with-icon">
-                                <FileText size={18} />
-                                <textarea
-                                    value={formData.Description}
-                                    onChange={(e) => setFormData({ ...formData, Description: e.target.value })}
-                                    placeholder="Add details about the expense..."
-                                    rows="2"
-                                    style={{ width: '100%', background: 'transparent', border: 'none', color: 'white', padding: '10px 40px' }}
-                                ></textarea>
-                            </div>
+                            <textarea
+                                value={formData.Description}
+                                onChange={(e) => setFormData({ ...formData, Description: e.target.value })}
+                                placeholder="Add details about the expense..."
+                                rows="2"
+                            ></textarea>
                         </div>
                     </div>
 

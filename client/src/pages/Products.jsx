@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
-import { Plus, Search, Edit2, Trash2, Package, Hash, User } from 'lucide-react';
+import { Plus, Search, Edit2, Trash2, Package, Hash, User, Download, Upload } from 'lucide-react';
 import AddProductModal from '../components/AddProductModal';
 import '../styles/Products.css';
 
@@ -11,6 +11,7 @@ const Products = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedProduct, setSelectedProduct] = useState(null);
+    const fileInputRef = useRef(null);
 
     useEffect(() => {
         fetchInitialData();
@@ -58,6 +59,73 @@ const Products = () => {
         return sup ? sup.CompanyName : 'Unknown';
     };
 
+    const generateBarcode = () => {
+        return `890${Date.now().toString().slice(-10)}`;
+    };
+
+    const downloadTemplate = () => {
+        const headers = ['Product Name', 'HSN Code', 'Barcode / EAN (auto-generate if blank)', 'Category', 'Primary Supplier (optional)', 'Retail Price', 'Wholesale Price'];
+        const sampleData = [
+            ['Syska LED Bulb 9W', '8539', '', 'Lighting', 'Syska', '299.99', '249.99'],
+            ['Bajaj Fan', '8414', '', 'Fans', 'Bajaj', '1200', '1000'],
+            ['Orient LED TV 32 inch', '8528', '', 'Electronics', '', '15000', '12000']
+        ];
+
+        const csvContent = [
+            headers.join(','),
+            ...sampleData.map(row => row.map(cell => `"${cell}"`).join(','))
+        ].join('\n');
+
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        const url = URL.createObjectURL(blob);
+        
+        link.setAttribute('href', url);
+        link.setAttribute('download', 'product_template.csv');
+        link.style.visibility = 'hidden';
+        
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+    };
+
+    const handleFileUpload = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = async (event) => {
+            try {
+                const csv = event.target.result;
+                const lines = csv.trim().split('\n');
+                const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
+                const data = [];
+
+                for (let i = 1; i < lines.length; i++) {
+                    if (lines[i].trim() === '') continue;
+                    
+                    const values = lines[i].split(',').map(v => v.trim().replace(/"/g, ''));
+                    const row = {};
+                    headers.forEach((header, idx) => {
+                        row[header] = values[idx] || '';
+                    });
+                    data.push(row);
+                }
+
+                // Send to backend
+                await axios.post('http://localhost:5000/api/products/bulk-import', { products: data });
+                alert('Products imported successfully!');
+                fetchInitialData();
+            } catch (error) {
+                console.error('Error uploading CSV:', error);
+                alert('Error uploading CSV: ' + (error.response?.data?.message || error.message));
+            }
+        };
+        reader.readAsText(file);
+        if (fileInputRef.current) fileInputRef.current.value = '';
+    };
+
     const filteredProducts = products.filter(p =>
         p.ProductName.toLowerCase().includes(searchTerm.toLowerCase()) ||
         (p.HSNCode && p.HSNCode.includes(searchTerm))
@@ -84,6 +152,23 @@ const Products = () => {
                         placeholder="Search by name or HSN code..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                </div>
+                <div className="bulk-actions">
+                    <button className="bulk-btn download" onClick={downloadTemplate}>
+                        <Download size={18} />
+                        <span>Download Template</span>
+                    </button>
+                    <button className="bulk-btn upload" onClick={() => fileInputRef.current?.click()}>
+                        <Upload size={18} />
+                        <span>Upload CSV</span>
+                    </button>
+                    <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept=".csv"
+                        onChange={handleFileUpload}
+                        style={{ display: 'none' }}
                     />
                 </div>
             </div>

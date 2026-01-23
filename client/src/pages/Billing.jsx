@@ -28,9 +28,9 @@ const Billing = () => {
     const [selectedWarehouseID, setSelectedWarehouseID] = useState('');
     const [paymentMode, setPaymentMode] = useState('Cash');
     const [discount, setDiscount] = useState(0);
-    const [gstType, setGstType] = useState('CGST_SGST');
-    
-    const [billType, setBillType] = useState('GST'); // GST, KACCHA, CHALLAN
+    const [billType, setBillType] = useState('KACCHA');
+    const [gstType, setGstType] = useState('SGST');
+
     const [showBillPreview, setShowBillPreview] = useState(false);
     const [billPreviewData, setBillPreviewData] = useState(null);
 
@@ -92,8 +92,7 @@ const Billing = () => {
                 ...product,
                 Quantity: 1,
                 SalePrice: product.UnitPrice,
-                GSTPercent: product.GSTPercent || 18,
-                total: (product.UnitPrice * 1 + (product.UnitPrice * 1 * (product.GSTPercent || 18) / 100)).toFixed(2)
+                total: (product.UnitPrice * 1).toFixed(2)
             };
             setCart([...cart, newItem]);
         }
@@ -108,8 +107,7 @@ const Billing = () => {
             if (item.ProductID === productId) {
                 const qty = newQty;
                 const price = parseFloat(item.SalePrice);
-                const gst = parseFloat(item.GSTPercent);
-                const total = (qty * price + (qty * price * gst / 100));
+                const total = (qty * price);
                 return { ...item, Quantity: qty, total: total.toFixed(2) };
             }
             return item;
@@ -124,7 +122,7 @@ const Billing = () => {
         if (cart.length === 0) return alert("Cart is empty!");
         if (!selectedCustomerID) return alert("Please select a customer.");
         if (!selectedWarehouseID) return alert("Please select a warehouse for stock deduction.");
-        
+
         // Prepare bill preview data
         const customer = customers.find(c => c.CustomerID === parseInt(selectedCustomerID));
         const previewData = {
@@ -141,7 +139,7 @@ const Billing = () => {
             orderDate: new Date().toLocaleDateString(),
             warehouseID: selectedWarehouseID
         };
-        
+
         setBillPreviewData(previewData);
         setShowBillPreview(true);
     };
@@ -154,16 +152,13 @@ const Billing = () => {
                 CustomerID: selectedCustomerID,
                 OrderNumber: billPreviewData.orderNumber,
                 OrderDate: new Date().toISOString().split('T')[0],
-                IsGST: billType !== 'KACCHA' ? 1 : 0,
-                GSTType: gstType,
                 TotalAmount: billPreviewData.finalTotal,
                 OrderStatus: 'Completed'
             },
             details: cart.map(i => ({
                 ProductID: i.ProductID,
                 Quantity: i.Quantity,
-                UnitPrice: i.SalePrice,
-                GSTPercent: billType === 'KACCHA' ? 0 : i.GSTPercent
+                UnitPrice: i.SalePrice
             })),
             warehouseID: billPreviewData.warehouseID
         };
@@ -183,9 +178,8 @@ const Billing = () => {
     };
 
     const subTotal = cart.reduce((sum, i) => sum + (i.Quantity * i.SalePrice), 0);
-    const totalWithGST = cart.reduce((sum, i) => sum + parseFloat(i.total), 0);
-    const gstTotal = totalWithGST - subTotal;
-    const finalTotal = (totalWithGST - discount).toFixed(2);
+    const gstTotal = billType === 'KACCHA' ? 0 : (subTotal * 0.18);
+    const finalTotal = (subTotal + gstTotal - discount).toFixed(2);
 
     // Return bill preview if showing
     if (showBillPreview && billPreviewData) {
@@ -238,26 +232,20 @@ const Billing = () => {
                         </div>
                         <div className="customer-details-grid" style={{ gridTemplateColumns: '1fr 1fr 1fr' }}>
                             <div className="customer-field">
-                                <label><User size={14} /> Customer</label>
+                                <label>Customer</label>
                                 <select value={selectedCustomerID} onChange={(e) => setSelectedCustomerID(e.target.value)} required>
                                     <option value="">Select Customer...</option>
                                     {customers.map(c => <option key={c.CustomerID} value={c.CustomerID}>{c.CompanyName}</option>)}
                                 </select>
                             </div>
                             <div className="customer-field">
-                                <label><Warehouse size={14} /> Dispatched From</label>
+                                <label>Dispatched From</label>
                                 <select value={selectedWarehouseID} onChange={(e) => setSelectedWarehouseID(e.target.value)} required>
                                     <option value="">Select Warehouse...</option>
                                     {warehouses.map(w => <option key={w.WarehouseID} value={w.WarehouseID}>{w.WarehouseName}</option>)}
                                 </select>
                             </div>
-                            <div className="customer-field">
-                                <label>GST Type</label>
-                                <select value={gstType} onChange={(e) => setGstType(e.target.value)}>
-                                    <option value="CGST_SGST">CGST + SGST</option>
-                                    <option value="IGST">IGST</option>
-                                </select>
-                            </div>
+
                         </div>
                     </div>
                 </div>
@@ -269,7 +257,6 @@ const Billing = () => {
                                 <th>Product Name</th>
                                 <th>Price</th>
                                 <th>Qty</th>
-                                <th>GST %</th>
                                 <th>Total</th>
                                 <th></th>
                             </tr>
@@ -280,7 +267,6 @@ const Billing = () => {
                                     <td>
                                         <div className="cart-item-info">
                                             <span className="name">{item.ProductName}</span>
-                                            <span className="sku">HSN: {item.HSNCode}</span>
                                         </div>
                                     </td>
                                     <td>₹{item.SalePrice}</td>
@@ -290,19 +276,6 @@ const Billing = () => {
                                             <span>{item.Quantity}</span>
                                             <button onClick={() => updateQuantity(item.ProductID, item.Quantity + 1)}><Plus size={14} /></button>
                                         </div>
-                                    </td>
-                                    <td style={{ width: '80px' }}>
-                                        <input
-                                            type="number"
-                                            value={item.GSTPercent}
-                                            onChange={(e) => {
-                                                const val = parseFloat(e.target.value) || 0;
-                                                const newCart = cart.map(c => c.ProductID === item.ProductID ? { ...c, GSTPercent: val } : c);
-                                                setCart(newCart);
-                                                updateQuantity(item.ProductID, item.Quantity);
-                                            }}
-                                            style={{ width: '50px', background: 'transparent', border: '1px solid #334155', color: 'white', textAlign: 'center', borderRadius: '4px' }}
-                                        /> %
                                     </td>
                                     <td className="item-total">₹{item.total}</td>
                                     <td>
@@ -327,12 +300,8 @@ const Billing = () => {
                     <h3>Summary</h3>
                     <div className="summary-details">
                         <div className="summary-row">
-                            <span>Taxable Value</span>
+                            <span>Subtotal</span>
                             <span>₹{subTotal.toFixed(2)}</span>
-                        </div>
-                        <div className="summary-row">
-                            <span>{gstType === 'IGST' ? 'IGST (Total)' : 'CGST + SGST (Total)'}</span>
-                            <span>₹{gstTotal.toFixed(2)}</span>
                         </div>
                         <div className="summary-row">
                             <span>Discount</span>
@@ -358,34 +327,7 @@ const Billing = () => {
                         </div>
                     </div>
 
-                    <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
-                        <label style={{ display: 'block', marginBottom: '8px', fontSize: '0.9rem', color: '#cbd5e1' }}>Bill Type</label>
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px' }}>
-                            {[
-                                { value: 'GST', label: 'GST Bill' },
-                                { value: 'KACCHA', label: 'Kaccha Bill (Non-GST)' },
-                                { value: 'CHALLAN', label: 'Challan' }
-                            ].map(type => (
-                                <button
-                                    key={type.value}
-                                    onClick={() => setBillType(type.value)}
-                                    style={{
-                                        padding: '8px',
-                                        borderRadius: '6px',
-                                        border: billType === type.value ? '2px solid #6366f1' : '1px solid #475569',
-                                        background: billType === type.value ? 'rgba(99, 102, 241, 0.1)' : 'transparent',
-                                        color: billType === type.value ? '#818cf8' : '#94a3b8',
-                                        cursor: 'pointer',
-                                        fontSize: '0.8rem',
-                                        fontWeight: billType === type.value ? '600' : '400',
-                                        transition: 'all 0.2s'
-                                    }}
-                                >
-                                    {type.label}
-                                </button>
-                            ))}
-                        </div>
-                    </div>
+
 
                     <div className="summary-actions" style={{ marginTop: '20px' }}>
                         <button className="checkout-btn" onClick={handleCheckout} style={{ width: '100%' }}>
@@ -435,7 +377,7 @@ const BillPreview = ({ data, onSubmit, onClose }) => {
                 {/* Header */}
                 <div style={{ textAlign: 'center', marginBottom: '24px', paddingBottom: '16px', borderBottom: '2px solid rgba(255, 255, 255, 0.1)' }}>
                     <h2 style={{ margin: '0 0 8px 0', color: '#f8fafc', fontSize: '1.5rem' }}>
-                        {data.billType === 'GST' ? 'Tax Invoice' : data.billType === 'KACCHA' ? 'Kaccha Bill' : 'Challan'}
+                        Invoice
                     </h2>
                     <p style={{ margin: '0', color: '#94a3b8', fontSize: '0.9rem' }}>
                         Order #: {data.orderNumber} | Date: {data.orderDate}
@@ -467,7 +409,6 @@ const BillPreview = ({ data, onSubmit, onClose }) => {
                                 <tr key={idx} style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.05)' }}>
                                     <td style={{ padding: '8px', color: '#f8fafc' }}>
                                         {item.ProductName}
-                                        {item.GSTPercent > 0 && <div style={{ fontSize: '0.8rem', color: '#94a3b8' }}>GST {item.GSTPercent}%</div>}
                                     </td>
                                     <td style={{ padding: '8px', textAlign: 'center', color: '#f8fafc' }}>{item.Quantity}</td>
                                     <td style={{ padding: '8px', textAlign: 'right', color: '#f8fafc' }}>₹{parseFloat(item.SalePrice).toFixed(2)}</td>
@@ -491,12 +432,6 @@ const BillPreview = ({ data, onSubmit, onClose }) => {
                             <span>Subtotal:</span>
                             <span>₹{parseFloat(data.subTotal).toFixed(2)}</span>
                         </div>
-                        {data.gstTotal > 0 && (
-                            <div style={{ display: 'flex', justifyContent: 'space-between', color: '#cbd5e1' }}>
-                                <span>GST/Tax:</span>
-                                <span>₹{parseFloat(data.gstTotal).toFixed(2)}</span>
-                            </div>
-                        )}
                         {data.discount > 0 && (
                             <div style={{ display: 'flex', justifyContent: 'space-between', color: '#cbd5e1' }}>
                                 <span>Discount:</span>

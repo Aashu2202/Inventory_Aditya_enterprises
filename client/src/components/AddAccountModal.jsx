@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { X, Landmark, Wallet, CreditCard } from 'lucide-react';
+import { X } from 'lucide-react';
 import '../styles/Modals.css';
 
 const AddAccountModal = ({ isOpen, onClose, onAccountAdded }) => {
@@ -36,45 +36,35 @@ const AddAccountModal = ({ isOpen, onClose, onAccountAdded }) => {
                     <div className="form-grid">
                         <div className="form-group full-width">
                             <label>Account Name <span className="required">*</span></label>
-                            <div className="input-with-icon">
-                                <CreditCard size={18} />
-                                <input
-                                    type="text"
-                                    placeholder="e.g. HDFC Bank, Petty Cash"
-                                    value={formData.AccountName}
-                                    onChange={(e) => setFormData({ ...formData, AccountName: e.target.value })}
-                                    required
-                                />
-                            </div>
+                            <input
+                                type="text"
+                                placeholder="e.g. HDFC Bank, Petty Cash"
+                                value={formData.AccountName}
+                                onChange={(e) => setFormData({ ...formData, AccountName: e.target.value })}
+                                required
+                            />
                         </div>
 
                         <div className="form-group">
                             <label>Account Type <span className="required">*</span></label>
-                            <div className="input-with-icon">
-                                {formData.AccountType === 'CASH' ? <Wallet size={18} /> : <Landmark size={18} />}
-                                <select
-                                    value={formData.AccountType}
-                                    onChange={(e) => setFormData({ ...formData, AccountType: e.target.value })}
-                                    required
-                                >
-                                    <option value="CASH">Cash Account</option>
-                                    <option value="BANK">Bank Account</option>
-                                </select>
-                            </div>
+                            <select
+                                value={formData.AccountType}
+                                onChange={(e) => setFormData({ ...formData, AccountType: e.target.value })}
+                                required
+                            >
+                                <option value="CASH">Cash Account</option>
+                                <option value="BANK">Bank Account</option>
+                            </select>
                         </div>
 
                         <div className="form-group">
                             <label>Initial Balance (₹)</label>
-                            <div className="input-with-icon">
-                                <span style={{ position: 'absolute', left: '14px', color: '#64748b', fontSize: '14px' }}>₹</span>
-                                <input
-                                    type="number"
-                                    value={formData.Balance}
-                                    onChange={(e) => setFormData({ ...formData, Balance: e.target.value })}
-                                    placeholder="0.00"
-                                    style={{ paddingLeft: '30px' }}
-                                />
-                            </div>
+                            <input
+                                type="number"
+                                value={formData.Balance}
+                                onChange={(e) => setFormData({ ...formData, Balance: e.target.value })}
+                                placeholder="0.00"
+                            />
                         </div>
                     </div>
 

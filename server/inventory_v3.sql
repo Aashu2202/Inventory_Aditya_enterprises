@@ -38,7 +38,6 @@ CREATE TABLE IF NOT EXISTS Suppliers (
     ContactName VARCHAR(50),
     Phone VARCHAR(20),
     Email VARCHAR(100),
-    GSTIN VARCHAR(20),
     Address VARCHAR(200),
     City VARCHAR(50),
     State VARCHAR(50),
@@ -64,8 +63,6 @@ CREATE TABLE IF NOT EXISTS Products (
     ProductName VARCHAR(100) NOT NULL,
     CategoryID INT NOT NULL,
     SupplierID INT NOT NULL,
-    HSNCode VARCHAR(20),
-    GSTPercent DECIMAL(5,2) DEFAULT 0,
     UnitPrice DECIMAL(10,2) NOT NULL,
     RetailPrice DECIMAL(10,2),
     WholesalePrice DECIMAL(10,2),
@@ -99,7 +96,6 @@ CREATE TABLE IF NOT EXISTS Customers (
     CompanyName VARCHAR(100) NOT NULL,
     Phone VARCHAR(20),
     Email VARCHAR(100),
-    GSTIN VARCHAR(20),
     Address VARCHAR(200),
     City VARCHAR(50),
     State VARCHAR(50)
@@ -110,8 +106,6 @@ CREATE TABLE IF NOT EXISTS Purchases (
     SupplierID INT NOT NULL,
     InvoiceNumber VARCHAR(50),
     PurchaseDate DATETIME DEFAULT CURRENT_TIMESTAMP,
-    IsGST TINYINT(1) DEFAULT 1,
-    GSTType VARCHAR(10), -- CGST_SGST / IGST
     TotalAmount DECIMAL(12,2),
     FOREIGN KEY (SupplierID) REFERENCES Suppliers(SupplierID)
 );
@@ -122,12 +116,8 @@ CREATE TABLE IF NOT EXISTS PurchaseDetails (
     ProductID INT NOT NULL,
     Quantity INT NOT NULL,
     UnitCost DECIMAL(10,2),
-    CGST DECIMAL(5,2) DEFAULT 0,
-    SGST DECIMAL(5,2) DEFAULT 0,
-    IGST DECIMAL(5,2) DEFAULT 0,
     LineTotal DECIMAL(15,2) AS (
-        Quantity * UnitCost +
-        (Quantity * UnitCost * (CGST + SGST + IGST) / 100)
+        Quantity * UnitCost
     ) STORED,
     FOREIGN KEY (PurchaseID) REFERENCES Purchases(PurchaseID),
     FOREIGN KEY (ProductID) REFERENCES Products(ProductID)
@@ -138,8 +128,6 @@ CREATE TABLE IF NOT EXISTS Orders (
     OrderNumber VARCHAR(50),
     CustomerID INT NOT NULL,
     OrderDate DATETIME DEFAULT CURRENT_TIMESTAMP,
-    IsGST TINYINT(1) DEFAULT 1,
-    GSTType VARCHAR(10),
     TotalAmount DECIMAL(12,2),
     OrderStatus VARCHAR(20) DEFAULT 'Pending',
     FOREIGN KEY (CustomerID) REFERENCES Customers(CustomerID)
@@ -151,9 +139,7 @@ CREATE TABLE IF NOT EXISTS OrderDetails (
     ProductID INT NOT NULL,
     Quantity INT NOT NULL,
     UnitPrice DECIMAL(10,2),
-    GSTPercent DECIMAL(5,2),
-    GSTAmount DECIMAL(15,2) AS (Quantity * UnitPrice * GSTPercent / 100) STORED,
-    LineTotal DECIMAL(15,2) AS (Quantity * UnitPrice + (Quantity * UnitPrice * GSTPercent / 100)) STORED,
+    LineTotal DECIMAL(15,2) AS (Quantity * UnitPrice) STORED,
     FOREIGN KEY (OrderID) REFERENCES Orders(OrderID),
     FOREIGN KEY (ProductID) REFERENCES Products(ProductID)
 );
@@ -229,16 +215,3 @@ FROM Products p
 LEFT JOIN Inventory i ON p.ProductID = i.ProductID
 LEFT JOIN Categories c ON p.CategoryID = c.CategoryID
 GROUP BY p.ProductID, p.ProductName, c.CategoryName, p.UnitPrice;
-
-CREATE OR REPLACE VIEW vw_GSTSales AS
-SELECT 
-    o.OrderID,
-    o.OrderDate,
-    c.CompanyName,
-    SUM(od.GSTAmount) AS TotalGST,
-    SUM(od.LineTotal) AS InvoiceAmount
-FROM Orders o
-JOIN OrderDetails od ON o.OrderID = od.OrderID
-JOIN Customers c ON o.CustomerID = c.CustomerID
-WHERE o.IsGST = 1
-GROUP BY o.OrderID, o.OrderDate, c.CompanyName;

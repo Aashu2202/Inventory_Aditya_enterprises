@@ -124,30 +124,21 @@
     color: #ef4444;
 }
 
-.input-with-icon {
-    position: relative;
-    display: flex;
-    align-items: center;
-}
 
-.input-with-icon svg {
-    position: absolute;
-    left: 14px;
-    color: #64748b;
-}
 
-.input-with-icon input,
-.input-with-icon select,
-.modal-form textarea {
+.modal-form input,
+.modal-form select {
     width: 100%;
     background: rgba(255, 255, 255, 0.03);
     border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 12px;
-    padding: 12px 12px 12px 42px;
+    padding: 14px 16px;
     color: #f8fafc;
     font-family: inherit;
-    font-size: 0.95rem;
+    font-size: 1rem;
     transition: all 0.2s;
+    min-height: 44px;
+    box-sizing: border-box;
 }
 
 select option {
@@ -156,15 +147,27 @@ select option {
 }
 
 .modal-form textarea {
-    padding: 12px;
+    width: 100%;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 14px 16px;
+    color: #f8fafc;
+    font-family: inherit;
+    font-size: 1rem;
+    min-height: 120px;
+    resize: vertical;
+    transition: all 0.2s;
+    box-sizing: border-box;
 }
 
-.input-with-icon input:focus,
-.input-with-icon select:focus,
+.modal-form input:focus,
+.modal-form select:focus,
 .modal-form textarea:focus {
     outline: none;
     border-color: #6366f1;
     background: rgba(255, 255, 255, 0.05);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
 }
 
 .modal-footer {
