@@ -10,12 +10,12 @@ const Supplier = {
     },
 
     create: (data, callback) => {
-        const { CompanyName, ContactName, Phone, Email, Address, City, State, Country } = data;
+        const { CompanyName, ContactName, Phone, Email, Address, City, State, Country, CompanyID } = data;
         const query = `
-      INSERT INTO Suppliers (CompanyName, ContactName, Phone, Email, Address, City, State, Country)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO Suppliers (CompanyID, CompanyName, ContactName, Phone, Email, Address, City, State, Country)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
-        db.query(query, [CompanyName, ContactName, Phone, Email, Address, City, State, Country || 'India'], callback);
+        db.query(query, [CompanyID || 1, CompanyName, ContactName, Phone, Email, Address, City, State, Country || 'India'], callback);
     },
 
     update: (id, data, callback) => {

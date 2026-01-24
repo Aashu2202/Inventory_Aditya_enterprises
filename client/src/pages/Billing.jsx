@@ -15,6 +15,7 @@ import {
     PlusCircle
 } from 'lucide-react';
 import AddCustomerModal from '../components/AddCustomerModal';
+import BillPreview from '../components/BillPreview';
 import '../styles/Billing.css';
 
 const Billing = () => {
@@ -33,14 +34,17 @@ const Billing = () => {
 
     const [showBillPreview, setShowBillPreview] = useState(false);
     const [billPreviewData, setBillPreviewData] = useState(null);
+    const [company, setCompany] = useState(null);
 
     const [isCustModalOpen, setIsCustModalOpen] = useState(false);
     const [suggestions, setSuggestions] = useState([]);
     const [showSuggestions, setShowSuggestions] = useState(false);
     const barcodeInputRef = useRef(null);
+    const [scanStatus, setScanStatus] = useState('');
 
     useEffect(() => {
         fetchInitialData();
+        fetchCompany();
         barcodeInputRef.current?.focus();
     }, []);
 
@@ -69,11 +73,107 @@ const Billing = () => {
         }
     };
 
+    const fetchCompany = async () => {
+        try {
+            const companyId = localStorage.getItem('activeCompanyId') || 1;
+            const response = await axios.get(`http://localhost:5000/api/companies/${companyId}`);
+            setCompany(response.data);
+        } catch (error) {
+            console.error('Error fetching company:', error);
+        }
+    };
+
+    // Global Scanner Detection
+    useEffect(() => {
+        let buffer = '';
+        let timer = null;
+
+        const SCAN_END_KEYS = ['Enter', 'Tab'];
+
+        const handleKeyPress = (e) => {
+            // Ignore input fields typing
+            if (
+                document.activeElement &&
+                ['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName)
+            ) {
+                return;
+            }
+
+            // Clear previous timer
+            if (timer) clearTimeout(timer);
+
+            if (SCAN_END_KEYS.includes(e.key)) {
+                if (buffer.length > 2) {
+                    const scannedCode = buffer.trim();
+
+                    const product = products.find(
+                        p => p.Barcode && p.Barcode.toLowerCase() === scannedCode.toLowerCase()
+                    );
+
+                    if (product) {
+                        handleSelectProductWrapper(product);
+                    } else {
+                        console.warn('Barcode not found:', scannedCode);
+                    }
+                }
+
+                buffer = '';
+                return;
+            }
+
+            buffer += e.key;
+
+            // Reset buffer if no input after 300ms
+            timer = setTimeout(() => {
+                buffer = '';
+            }, 300);
+        };
+
+        window.addEventListener('keypress', handleKeyPress);
+        return () => window.removeEventListener('keypress', handleKeyPress);
+    }, [products]);
+
+
+
+    const handleSelectProductWrapper = (product) => {
+        // We need to call the logic that adds to cart.
+        // It's cleaner to duplicate the add logic with functional update or move handleSelectProduct to use functional check
+        setCart(prevCart => {
+            const existingItem = prevCart.find((i) => i.ProductID === product.ProductID);
+            if (existingItem) {
+                // Return new cart with updated qty
+                return prevCart.map(item => {
+                    if (item.ProductID === product.ProductID) {
+                        const qty = item.Quantity + 1;
+                        const price = parseFloat(item.SalePrice);
+                        const total = (qty * price).toFixed(2);
+                        return { ...item, Quantity: qty, total };
+                    }
+                    return item;
+                });
+            } else {
+                // New item
+                const newItem = {
+                    ...product,
+                    Quantity: 1,
+                    SalePrice: product.UnitPrice,
+                    total: (product.UnitPrice * 1).toFixed(2)
+                };
+                return [...prevCart, newItem];
+            }
+        });
+        setSearchTerm('');
+        setShowSuggestions(false);
+        // Refocus handled by side-effect or just keep current focus
+    };
+
     useEffect(() => {
         if (searchTerm.trim().length > 0) {
+            const term = searchTerm.toLowerCase();
             const filtered = products.filter(p =>
-                p.ProductName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                (p.Barcodes && p.Barcodes.some(b => b.Barcode.includes(searchTerm)))
+                p.ProductName.toLowerCase().includes(term) ||
+                (p.Barcode && p.Barcode.toLowerCase().includes(term)) ||
+                (p.HSNCode && p.HSNCode.toLowerCase().includes(term))
             ).slice(0, 8);
             setSuggestions(filtered);
             setShowSuggestions(true);
@@ -82,6 +182,28 @@ const Billing = () => {
             setShowSuggestions(false);
         }
     }, [searchTerm, products]);
+
+    const handleKeyDown = (e) => {
+        if (e.key === 'Enter' && searchTerm.trim().length > 0) {
+            // Priority: Exact Barcode Match > Exact Name Match > First Suggestion
+            const term = searchTerm.trim().toLowerCase();
+
+            // Check for exact barcode match first (Scanner behavior)
+            const exactMatch = products.find(p => p.Barcode && p.Barcode.toLowerCase() === term);
+
+            if (exactMatch) {
+                handleSelectProduct(exactMatch);
+                e.preventDefault(); // Prevent form submission if any
+                return;
+            }
+
+            // Fallback: If suggestions exist, take the first one
+            if (suggestions.length > 0) {
+                handleSelectProduct(suggestions[0]);
+                e.preventDefault();
+            }
+        }
+    };
 
     const handleSelectProduct = (product) => {
         const existingItem = cart.find((i) => i.ProductID === product.ProductID);
@@ -96,9 +218,10 @@ const Billing = () => {
             };
             setCart([...cart, newItem]);
         }
-        setSearchTerm('');
+        setSearchTerm(''); // Clear for next scan
         setShowSuggestions(false);
-        barcodeInputRef.current?.focus();
+        // Keep focus on input for continuous scanning
+        setTimeout(() => barcodeInputRef.current?.focus(), 10);
     };
 
     const updateQuantity = (productId, newQty) => {
@@ -183,7 +306,30 @@ const Billing = () => {
 
     // Return bill preview if showing
     if (showBillPreview && billPreviewData) {
-        return <BillPreview data={billPreviewData} onSubmit={handleSubmitBill} onClose={() => setShowBillPreview(false)} />;
+        const customer = customers.find(c => c.CustomerID === parseInt(selectedCustomerID));
+
+        // Format bill data to match BillPreview component expectations
+        const formattedBill = {
+            BillNumber: billPreviewData.orderNumber,
+            BillDate: new Date().toISOString(),
+            BillStatus: 'DRAFT',
+            items: billPreviewData.items.map(item => ({
+                ProductName: item.ProductName,
+                Quantity: item.Quantity,
+                UnitPrice: parseFloat(item.SalePrice)
+            }))
+        };
+
+        return (
+            <BillPreview
+                bill={formattedBill}
+                company={company}
+                customer={customer}
+                billId={null}
+                onBack={() => setShowBillPreview(false)}
+                onSubmit={handleSubmitBill}
+            />
+        );
     }
 
     return (
@@ -199,8 +345,27 @@ const Billing = () => {
                                 placeholder="Scan Barcode or Search Product..."
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
+                                onKeyDown={handleKeyDown}
                                 onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
                             />
+                            {scanStatus && (
+                                <div style={{
+                                    position: 'absolute',
+                                    top: '100%',
+                                    left: 0,
+                                    right: 0,
+                                    background: scanStatus.includes('✅') ? '#dcfce7' : '#fee2e2',
+                                    color: scanStatus.includes('✅') ? '#166534' : '#991b1b',
+                                    padding: '8px',
+                                    borderRadius: '0 0 4px 4px',
+                                    fontSize: '13px',
+                                    zIndex: 10,
+                                    border: '1px solid',
+                                    borderColor: scanStatus.includes('✅') ? '#86efac' : '#fca5a5'
+                                }}>
+                                    {scanStatus}
+                                </div>
+                            )}
                             {showSuggestions && suggestions.length > 0 && (
                                 <ul className="suggestions-dropdown">
                                     {suggestions.map((p) => (
@@ -349,163 +514,6 @@ const Billing = () => {
     );
 };
 
-const BillPreview = ({ data, onSubmit, onClose }) => {
-    return (
-        <div style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            width: '100%',
-            height: '100%',
-            background: 'rgba(0, 0, 0, 0.7)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 1000
-        }}>
-            <div style={{
-                background: '#1e293b',
-                borderRadius: '12px',
-                padding: '32px',
-                width: '90%',
-                maxWidth: '600px',
-                maxHeight: '90vh',
-                overflowY: 'auto',
-                boxShadow: '0 20px 60px rgba(0, 0, 0, 0.5)',
-                border: '1px solid rgba(255, 255, 255, 0.1)'
-            }}>
-                {/* Header */}
-                <div style={{ textAlign: 'center', marginBottom: '24px', paddingBottom: '16px', borderBottom: '2px solid rgba(255, 255, 255, 0.1)' }}>
-                    <h2 style={{ margin: '0 0 8px 0', color: '#f8fafc', fontSize: '1.5rem' }}>
-                        Invoice
-                    </h2>
-                    <p style={{ margin: '0', color: '#94a3b8', fontSize: '0.9rem' }}>
-                        Order #: {data.orderNumber} | Date: {data.orderDate}
-                    </p>
-                </div>
 
-                {/* Customer Info */}
-                <div style={{ marginBottom: '20px', background: 'rgba(255, 255, 255, 0.05)', padding: '12px', borderRadius: '8px' }}>
-                    <h4 style={{ margin: '0 0 8px 0', color: '#cbd5e1', fontSize: '0.85rem' }}>BILL TO:</h4>
-                    <p style={{ margin: '0', color: '#f8fafc', fontWeight: '600' }}>{data.customer?.CompanyName}</p>
-                    <p style={{ margin: '4px 0 0 0', color: '#94a3b8', fontSize: '0.85rem' }}>
-                        {data.customer?.City}, {data.customer?.State}
-                    </p>
-                </div>
-
-                {/* Items */}
-                <div style={{ marginBottom: '20px' }}>
-                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.9rem' }}>
-                        <thead>
-                            <tr style={{ borderBottom: '2px solid rgba(255, 255, 255, 0.1)' }}>
-                                <th style={{ textAlign: 'left', padding: '8px', color: '#cbd5e1', fontWeight: '600' }}>Item</th>
-                                <th style={{ textAlign: 'center', padding: '8px', color: '#cbd5e1', fontWeight: '600', width: '60px' }}>Qty</th>
-                                <th style={{ textAlign: 'right', padding: '8px', color: '#cbd5e1', fontWeight: '600', width: '80px' }}>Price</th>
-                                <th style={{ textAlign: 'right', padding: '8px', color: '#cbd5e1', fontWeight: '600', width: '100px' }}>Total</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {data.items.map((item, idx) => (
-                                <tr key={idx} style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.05)' }}>
-                                    <td style={{ padding: '8px', color: '#f8fafc' }}>
-                                        {item.ProductName}
-                                    </td>
-                                    <td style={{ padding: '8px', textAlign: 'center', color: '#f8fafc' }}>{item.Quantity}</td>
-                                    <td style={{ padding: '8px', textAlign: 'right', color: '#f8fafc' }}>₹{parseFloat(item.SalePrice).toFixed(2)}</td>
-                                    <td style={{ padding: '8px', textAlign: 'right', color: '#f8fafc' }}>₹{parseFloat(item.total).toFixed(2)}</td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
-
-                {/* Summary */}
-                <div style={{
-                    background: 'rgba(255, 255, 255, 0.05)',
-                    padding: '16px',
-                    borderRadius: '8px',
-                    marginBottom: '20px',
-                    borderLeft: '4px solid #6366f1'
-                }}>
-                    <div style={{ display: 'grid', gap: '8px' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', color: '#cbd5e1' }}>
-                            <span>Subtotal:</span>
-                            <span>₹{parseFloat(data.subTotal).toFixed(2)}</span>
-                        </div>
-                        {data.discount > 0 && (
-                            <div style={{ display: 'flex', justifyContent: 'space-between', color: '#cbd5e1' }}>
-                                <span>Discount:</span>
-                                <span>-₹{parseFloat(data.discount).toFixed(2)}</span>
-                            </div>
-                        )}
-                        <div style={{
-                            display: 'flex',
-                            justifyContent: 'space-between',
-                            color: '#f8fafc',
-                            fontSize: '1.1rem',
-                            fontWeight: '700',
-                            paddingTop: '8px',
-                            borderTop: '1px solid rgba(255, 255, 255, 0.1)'
-                        }}>
-                            <span>Total:</span>
-                            <span>₹{data.finalTotal}</span>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Payment Info */}
-                <div style={{ textAlign: 'center', marginBottom: '20px', color: '#94a3b8', fontSize: '0.85rem' }}>
-                    <p style={{ margin: '0' }}>Payment Mode: <strong style={{ color: '#cbd5e1' }}>{data.paymentMode}</strong></p>
-                </div>
-
-                {/* Actions */}
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                    <button
-                        onClick={onClose}
-                        style={{
-                            padding: '12px',
-                            borderRadius: '8px',
-                            border: '1px solid #475569',
-                            background: 'transparent',
-                            color: '#cbd5e1',
-                            cursor: 'pointer',
-                            fontWeight: '600',
-                            transition: 'all 0.2s'
-                        }}
-                        onMouseEnter={(e) => {
-                            e.target.style.background = 'rgba(255, 255, 255, 0.05)';
-                        }}
-                        onMouseLeave={(e) => {
-                            e.target.style.background = 'transparent';
-                        }}
-                    >
-                        Back to Edit
-                    </button>
-                    <button
-                        onClick={onSubmit}
-                        style={{
-                            padding: '12px',
-                            borderRadius: '8px',
-                            border: 'none',
-                            background: '#6366f1',
-                            color: 'white',
-                            cursor: 'pointer',
-                            fontWeight: '600',
-                            transition: 'all 0.2s'
-                        }}
-                        onMouseEnter={(e) => {
-                            e.target.style.background = '#4f46e5';
-                        }}
-                        onMouseLeave={(e) => {
-                            e.target.style.background = '#6366f1';
-                        }}
-                    >
-                        ✓ Confirm & Submit
-                    </button>
-                </div>
-            </div>
-        </div>
-    );
-};
 
 export default Billing;

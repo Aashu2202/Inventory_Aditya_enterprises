@@ -13,7 +13,9 @@ import {
     Database,
     ChevronLeft,
     ChevronRight,
-    Wallet
+    Wallet,
+    Building,
+    FileCheck
 } from 'lucide-react';
 import '../styles/Sidebar.css';
 
@@ -27,8 +29,10 @@ const Sidebar = ({ isOpen, isCollapsed, onClose, onToggleCollapse }) => {
         { name: 'Customers', icon: <Users size={20} />, path: '/customers' },
         { name: 'Purchases', icon: <ShoppingCart size={20} />, path: '/purchases' },
         { name: 'Sales Orders', icon: <FileText size={20} />, path: '/orders' },
+        { name: 'Bills & Invoices', icon: <FileCheck size={20} />, path: '/bills' },
         { name: 'Accounts', icon: <Wallet size={20} />, path: '/accounts' },
         { name: 'Transfers', icon: <ArrowLeftRight size={20} />, path: '/transfers' },
+        { name: 'Companies', icon: <Building size={20} />, path: '/companies' },
         { name: 'Sales Reports', icon: <TrendingUp size={20} />, path: '/reports' },
         { name: 'Backup & Restore', icon: <Database size={20} />, path: '/backup' },
     ];

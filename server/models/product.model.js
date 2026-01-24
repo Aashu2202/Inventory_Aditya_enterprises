@@ -18,66 +18,49 @@ const Product = {
   findByBarcode: (barcode, callback) => {
     const query = `
       SELECT p.*, c.CategoryName 
-      FROM ProductBarcodes pb
-      JOIN Products p ON pb.ProductID = p.ProductID
+      FROM Products p
       LEFT JOIN Categories c ON p.CategoryID = c.CategoryID
-      WHERE pb.BarcodeValue = ?
+      WHERE p.Barcode = ?
     `;
     db.query(query, [barcode], callback);
   },
 
   create: (productData, callback) => {
-    const { ProductName, CategoryID, SupplierID, UnitPrice, RetailPrice, WholesalePrice, ReorderLevel, IsActive } = productData;
+    const { ProductName, CategoryID, SupplierID, UnitPrice, RetailPrice, WholesalePrice, ReorderLevel, IsActive, Barcode, CompanyID, HSNCode } = productData;
     const query = `
-      INSERT INTO Products (ProductName, CategoryID, SupplierID, UnitPrice, RetailPrice, WholesalePrice, ReorderLevel, IsActive) 
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO Products (CompanyID, ProductName, CategoryID, SupplierID, UnitPrice, RetailPrice, WholesalePrice, ReorderLevel, Barcode, IsActive, HSNCode) 
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
-    db.query(query, [ProductName, CategoryID, SupplierID, UnitPrice, RetailPrice, WholesalePrice, ReorderLevel, IsActive || 1], callback);
+    db.query(query, [CompanyID || 1, ProductName, CategoryID, SupplierID, UnitPrice, RetailPrice, WholesalePrice, ReorderLevel, Barcode || null, IsActive || 1, HSNCode || null], callback);
   },
 
-  addBarcode: (productId, barcodeValue, callback) => {
-    const query = "INSERT INTO ProductBarcodes (ProductID, BarcodeValue) VALUES (?, ?)";
-    db.query(query, [productId, barcodeValue], callback);
-  },
-
-  getBarcodes: (productId, callback) => {
-    db.query("SELECT * FROM ProductBarcodes WHERE ProductID = ?", [productId], callback);
-  },
-
+  // Simplified: Barcode is now part of product update
   update: (id, productData, callback) => {
-    const { ProductName, CategoryID, SupplierID, UnitPrice, RetailPrice, WholesalePrice, ReorderLevel, IsActive } = productData;
+    const { ProductName, CategoryID, SupplierID, UnitPrice, RetailPrice, WholesalePrice, ReorderLevel, IsActive, Barcode, HSNCode } = productData;
     const query = `
       UPDATE Products 
       SET ProductName = ?, CategoryID = ?, SupplierID = ?, 
-          UnitPrice = ?, RetailPrice = ?, WholesalePrice = ?, ReorderLevel = ?, IsActive = ?
+          UnitPrice = ?, RetailPrice = ?, WholesalePrice = ?, ReorderLevel = ?, IsActive = ?, Barcode = ?, HSNCode = ?
       WHERE ProductID = ?
     `;
-    db.query(query, [ProductName, CategoryID, SupplierID, UnitPrice, RetailPrice, WholesalePrice, ReorderLevel, IsActive, id], callback);
+    db.query(query, [ProductName, CategoryID, SupplierID, UnitPrice, RetailPrice, WholesalePrice, ReorderLevel, IsActive, Barcode, HSNCode, id], callback);
   },
 
   delete: (id, callback) => {
     // Use a transaction to safely delete the product and all related records
-    // First, disable foreign key checks temporarily
     db.query("SET FOREIGN_KEY_CHECKS = 0", (err) => {
       if (err) return callback(err);
 
       // List of all tables that might have references to products
       const tablesToClean = [
-        { table: 'ProductBarcodes', column: 'ProductID' },
         { table: 'Inventory', column: 'ProductID' },
         { table: 'OrderDetails', column: 'ProductID' },
         { table: 'PurchaseDetails', column: 'ProductID' },
-        { table: 'PurchaseOrderDetails', column: 'ProductID' },
-        { table: 'TransferDetails', column: 'ProductID' },
-        { table: 'SalesDetails', column: 'ProductID' },
-        { table: 'StockMovements', column: 'ProductID' },
-        { table: 'StockTransfers', column: 'ProductId' },
-        { table: 'Sales', column: 'ProductID' },
-        { table: 'Transfers', column: 'ProductID' }
+        { table: 'BillItems', column: 'ProductID' },
+        { table: 'StockMovements', column: 'ProductID' }
       ];
 
       let cleanupCount = 0;
-      let errors = [];
 
       // Clean up each table
       const cleanupNextTable = () => {
@@ -96,7 +79,7 @@ const Product = {
 
         const tableInfo = tablesToClean[cleanupCount];
         db.query(`DELETE FROM \`${tableInfo.table}\` WHERE \`${tableInfo.column}\` = ?`, [id], (err) => {
-          // Ignore errors for this table (table might not exist or might not have the column)
+          // Ignore errors for this table
           cleanupCount++;
           cleanupNextTable();
         });

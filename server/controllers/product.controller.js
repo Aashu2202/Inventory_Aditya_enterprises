@@ -16,15 +16,20 @@ const productController = {
         if (!productData.UnitPrice || productData.UnitPrice === '') {
             productData.UnitPrice = productData.RetailPrice || productData.WholesalePrice || 0;
         }
-        
+
+        // Handle Barcode: Use provided one or auto-generate
+        productData.Barcode = productData.Barcode || `890${Date.now().toString().slice(-10)}`;
+        productData.CompanyID = productData.CompanyID || 1; // Default
+
         Product.create(productData, (err, result) => {
             if (err) return res.status(500).json({ error: "Database error", details: err });
 
             const productId = result.insertId;
+
             // Initialize stock in Main Warehouse (StoreId 1) with 0 quantity
             Product.updateStock(productId, 1, 0, (stockErr) => {
                 if (stockErr) console.error("Stock initialization error:", stockErr);
-                res.json({ success: true, message: "Product created and stock initialized", id: productId });
+                res.json({ success: true, message: "Product created with barcode", id: productId, barcode: productData.Barcode });
             });
         });
     },
@@ -61,7 +66,7 @@ const productController = {
         if (!productData.UnitPrice || productData.UnitPrice === '') {
             productData.UnitPrice = productData.RetailPrice || productData.WholesalePrice || 0;
         }
-        
+
         Product.update(req.params.id, productData, (err, result) => {
             if (err) return res.status(500).json({ error: "Database error", details: err });
             res.json({ success: true, message: "Product updated successfully" });
@@ -97,7 +102,7 @@ const productController = {
 
             // First, get existing categories
             const existingCategories = await new Promise((resolve, reject) => {
-                db.query("SELECT CategoryID, CategoryName FROM categories", (err, results) => {
+                db.query("SELECT CategoryID, CategoryName FROM Categories", (err, results) => {
                     if (err) reject(err);
                     else resolve(results || []);
                 });
@@ -118,14 +123,12 @@ const productController = {
             for (const catName of categoryNames) {
                 if (!categoriesMap.has(catName.toLowerCase())) {
                     const newCatId = await new Promise((resolve, reject) => {
-                        db.query(
-                            "INSERT INTO categories (CategoryName) VALUES (?)",
-                            [catName],
-                            (err, result) => {
-                                if (err) reject(err);
-                                else resolve(result.insertId);
-                            }
-                        );
+                        // Pass CompanyID for category creation
+                        const Category = require("../models/category.model");
+                        Category.create({ CategoryName: catName, CompanyID: 1 }, (err, result) => {
+                            if (err) reject(err);
+                            else resolve(result.insertId);
+                        });
                     });
                     categoriesMap.set(catName.toLowerCase(), newCatId);
                 }
@@ -138,11 +141,12 @@ const productController = {
             for (const product of products) {
                 try {
                     const productData = {
+                        CompanyID: 1, // Default CompanyID
                         ProductName: product['Product Name'] || '',
                         HSNCode: product['HSN Code'] || '',
                         Barcode: product['Barcode / EAN (auto-generate if blank)'] || `890${Date.now().toString().slice(-10)}`,
                         CategoryID: categoriesMap.get(product['Category']?.toLowerCase()) || null,
-                        SupplierID: product['Primary Supplier (optional)'] ? 1 : null, // Default to 1 if supplier name provided
+                        SupplierID: 1, // Default to General Supplier (ID 1) to prevent FK errors
                         RetailPrice: parseFloat(product['Retail Price']) || 0,
                         WholesalePrice: parseFloat(product['Wholesale Price']) || 0,
                         UnitPrice: parseFloat(product['Retail Price']) || 0

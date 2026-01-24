@@ -18,6 +18,8 @@ const backupRoutes = require("./routes/backup.routes");
 const dashboardRoutes = require("./routes/dashboard.routes");
 const accountRoutes = require("./routes/account.routes");
 const expenseRoutes = require("./routes/expense.routes");
+const companyRoutes = require("./routes/company.routes");
+const billRoutes = require("./routes/bill.routes");
 
 const app = express();
 app.use(cors());
@@ -25,6 +27,8 @@ app.use(express.json());
 
 // Routes
 app.use("/api", authRoutes);
+app.use("/api/companies", companyRoutes);
+app.use("/api/bills", billRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/categories", categoryRoutes);
 app.use("/api/suppliers", supplierRoutes);

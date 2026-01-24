@@ -9,10 +9,10 @@ const connection = mysql.createConnection({
     multipleStatements: true
 });
 
-const sqlFile = path.join(__dirname, 'inventory_v3.sql');
+const sqlFile = path.join(__dirname, 'inventory_v4.sql');
 const sql = fs.readFileSync(sqlFile, 'utf8');
 
-console.log('Starting database setup (Schema V3)...');
+console.log('Starting database setup (Schema V4)...');
 
 connection.query(sql, (err) => {
     if (err) {

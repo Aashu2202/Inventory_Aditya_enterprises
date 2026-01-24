@@ -6,8 +6,8 @@ const Category = {
     },
 
     create: (data, callback) => {
-        const { CategoryName, Description } = data;
-        db.query("INSERT INTO Categories (CategoryName, Description) VALUES (?, ?)", [CategoryName, Description], callback);
+        const { CategoryName, Description, CompanyID } = data;
+        db.query("INSERT INTO Categories (CompanyID, CategoryName, Description) VALUES (?, ?, ?)", [CompanyID || 1, CategoryName, Description], callback);
     },
 
     update: (id, data, callback) => {

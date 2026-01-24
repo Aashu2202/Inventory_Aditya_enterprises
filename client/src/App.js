@@ -13,6 +13,8 @@ import Backup from './pages/Backup';
 import PurchaseOrders from './pages/PurchaseOrders';
 import Billing from './pages/Billing';
 import Reports from './pages/Reports';
+import Companies from './pages/Companies';
+import Bills from './pages/Bills';
 import Layout from './components/Layout';
 
 const App = () => {
@@ -41,6 +43,10 @@ const App = () => {
         {/* Transactional */}
         <Route path="/purchases" element={<ProtectedRoute><PurchaseOrders /></ProtectedRoute>} />
         <Route path="/orders" element={<ProtectedRoute><Billing /></ProtectedRoute>} />
+        <Route path="/bills" element={<ProtectedRoute><Bills /></ProtectedRoute>} />
+
+        {/* Company & Admin */}
+        <Route path="/companies" element={<ProtectedRoute><Companies /></ProtectedRoute>} />
 
         {/* Legacy/Other */}
         <Route path="/transfers" element={<ProtectedRoute><Transfers /></ProtectedRoute>} />

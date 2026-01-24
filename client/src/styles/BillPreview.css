@@ -1,0 +1,490 @@
+.invoice-data {
+    color: #070021 !important;
+}
+
+.bill-preview-wrapper {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+    padding: 40px 20px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
+}
+
+.bill-preview-container {
+    background-color: #f5f5f5;
+    padding: 0;
+    border-radius: 8px;
+    max-width: 900px;
+    margin: 0 auto 30px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+}
+
+.bill-preview {
+    background-color: white;
+    padding: 40px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    page-break-after: always;
+}
+
+/* Header */
+.bill-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 40px;
+    border-bottom: 2px solid #333;
+    padding-bottom: 20px;
+}
+
+.bill-company-info {
+    flex: 1;
+}
+
+.bill-logo {
+    max-width: 100px;
+    height: auto;
+    margin-bottom: 10px;
+}
+
+.bill-company-info h1 {
+    font-size: 24px;
+    font-weight: bold;
+    margin: 0 0 10px 0;
+    color: #333;
+}
+
+.bill-company-info p {
+    margin: 4px 0;
+    font-size: 12px;
+    color: #666;
+}
+
+/* Bill Title Section */
+.bill-title-section {
+    text-align: right;
+}
+
+.bill-title {
+    font-size: 36px;
+    font-weight: bold;
+    color: #333;
+    margin: 0 0 20px 0;
+    letter-spacing: 2px;
+}
+
+.bill-info {
+    background-color: #f9f9f9;
+    padding: 15px;
+    border-radius: 4px;
+}
+
+.info-row {
+    display: flex;
+    justify-content: space-between;
+    margin: 8px 0;
+    font-size: 13px;
+}
+
+.info-row .label {
+    font-weight: bold;
+    min-width: 100px;
+}
+
+.info-row .value {
+    text-align: right;
+    flex: 1;
+}
+
+.info-row .status {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+.status.draft {
+    background-color: #fff3cd;
+    color: #856404;
+}
+
+.status.final {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.status.cancelled {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+/* Bill To Section */
+.bill-to-section {
+    margin: 30px 0;
+}
+
+.bill-to h4 {
+    font-size: 14px;
+    font-weight: bold;
+    text-transform: uppercase;
+    color: #333;
+    margin: 0 0 10px 0;
+    letter-spacing: 1px;
+}
+
+.customer-name {
+    font-size: 16px;
+    font-weight: bold;
+    color: #333;
+    margin: 5px 0;
+}
+
+.bill-to p {
+    margin: 4px 0;
+    font-size: 12px;
+    color: #666;
+}
+
+/* Items Table */
+.bill-items-section {
+    margin: 30px 0;
+}
+
+.bill-items-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+}
+
+.bill-items-table thead {
+    background-color: #f0f0f0;
+}
+
+.bill-items-table th {
+    padding: 12px;
+    text-align: left;
+    font-weight: bold;
+    font-size: 12px;
+    text-transform: uppercase;
+    border-bottom: 2px solid #333;
+    color: #333;
+}
+
+.bill-items-table td {
+    padding: 12px;
+    border-bottom: 1px solid #ddd;
+    font-size: 13px;
+    color: #333;
+}
+
+.bill-items-table .col-item {
+    text-align: left;
+    width: 40%;
+}
+
+.bill-items-table .col-qty {
+    width: 15%;
+}
+
+.bill-items-table .col-price {
+    width: 20%;
+}
+
+.bill-items-table .col-total {
+    width: 25%;
+}
+
+.bill-items-table .text-center {
+    text-align: center;
+}
+
+.bill-items-table .text-right {
+    text-align: right;
+}
+
+/* Totals Section */
+.bill-totals-section {
+    margin: 30px 0;
+    display: flex;
+    justify-content: flex-end;
+}
+
+.bill-totals {
+    width: 300px;
+    background-color: #f9f9f9;
+    padding: 15px;
+    border-radius: 4px;
+}
+
+.total-row {
+    display: flex;
+    justify-content: space-between;
+    margin: 10px 0;
+    font-size: 13px;
+    color: #333;
+}
+
+.total-row .label {
+    font-weight: bold;
+}
+
+.total-row .value {
+    text-align: right;
+    color: #070021;
+    min-width: 100px;
+}
+
+.total-row.grand-total {
+    border-top: 2px solid #333;
+    padding-top: 10px;
+    margin-top: 10px;
+    font-size: 16px;
+    font-weight: bold;
+    color: #333;
+}
+
+/* Notes & Terms */
+.bill-notes-section {
+    margin: 30px 0;
+    padding: 15px;
+    background-color: #f9f9f9;
+    border-radius: 4px;
+}
+
+.bill-notes-section .notes,
+.bill-notes-section .terms {
+    margin-bottom: 15px;
+}
+
+.bill-notes-section h4 {
+    font-size: 12px;
+    font-weight: bold;
+    text-transform: uppercase;
+    margin: 0 0 8px 0;
+    color: #333;
+}
+
+.bill-notes-section p {
+    margin: 0;
+    font-size: 12px;
+    color: #666;
+    line-height: 1.5;
+}
+
+/* Footer */
+.bill-footer {
+    margin-top: 40px;
+    text-align: center;
+    padding-top: 20px;
+    border-top: 1px solid #ddd;
+    font-size: 12px;
+    color: #666;
+}
+
+/* Action Buttons */
+.bill-preview-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    max-width: 900px;
+    margin: 0 auto;
+    flex-wrap: wrap;
+}
+
+.btn-back,
+.btn-download,
+.btn-print,
+.btn-submit {
+    padding: 14px 28px;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    min-width: 160px;
+    text-align: center;
+}
+
+.btn-back {
+    background-color: rgba(255, 255, 255, 0.15);
+    color: white;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    flex: 1;
+    min-width: 200px;
+}
+
+.btn-back:hover:not(:disabled) {
+    background-color: rgba(255, 255, 255, 0.25);
+    border-color: rgba(255, 255, 255, 0.5);
+    transform: translateY(-2px);
+}
+
+.btn-download,
+.btn-print {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    flex: 1;
+    min-width: 140px;
+}
+
+.btn-download:hover:not(:disabled),
+.btn-print:hover:not(:disabled) {
+    background-color: rgba(255, 255, 255, 0.2);
+    transform: translateY(-2px);
+}
+
+.btn-submit {
+    background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%);
+    color: white;
+    flex: 1;
+    min-width: 200px;
+    box-shadow: 0 4px 15px rgba(79, 70, 229, 0.3);
+}
+
+.btn-submit:hover:not(:disabled) {
+    background: linear-gradient(135deg, #4338ca 0%, #4f46e5 100%);
+    box-shadow: 0 6px 20px rgba(79, 70, 229, 0.4);
+    transform: translateY(-2px);
+}
+
+.btn-back:disabled,
+.btn-download:disabled,
+.btn-print:disabled,
+.btn-submit:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.bill-finalized-badge {
+    padding: 14px 28px;
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: white;
+    border-radius: 6px;
+    font-weight: 600;
+    flex: 1;
+    min-width: 200px;
+    text-align: center;
+    box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+}
+
+/* Print Styles */
+/* Print Styles */
+@media print {
+    body * {
+        visibility: hidden;
+    }
+
+    .bill-preview-wrapper,
+    .bill-preview-wrapper * {
+        visibility: visible;
+    }
+
+    .bill-preview-wrapper {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        margin: 0 !important;
+        padding: 0 !important;
+        background: white !important;
+        min-height: auto !important;
+    }
+
+    .bill-preview-container {
+        box-shadow: none !important;
+        margin: 0 !important;
+        max-width: 100% !important;
+        width: 100% !important;
+        background: white !important;
+        border-radius: 0 !important;
+    }
+
+    .bill-preview {
+        box-shadow: none !important;
+        padding: 10mm !important;
+        /* Slightly reduced padding for better fit */
+        margin: 0 !important;
+        background: white !important;
+        color: black !important;
+        border-radius: 0 !important;
+    }
+
+    .bill-preview-actions {
+        display: none !important;
+    }
+
+    /* Force all text to be black */
+    .bill-preview *,
+    .bill-preview h1,
+    .bill-preview h2,
+    .bill-preview h3,
+    .bill-preview h4,
+    .bill-preview p,
+    .bill-preview span,
+    .bill-preview div,
+    .bill-preview strong,
+    .bill-preview b,
+    .bill-preview td,
+    .bill-preview th,
+    .bill-preview label {
+        color: black !important;
+        -webkit-text-fill-color: black !important;
+        /* For some webkit browsers */
+    }
+
+    /* Specific overrides for subtotal/total sections in case transparency is issue */
+    .bill-totals-section,
+    .bill-totals,
+    .total-row,
+    .total-row .label,
+    .total-row .value,
+    .total-row span {
+        color: black !important;
+        background: transparent !important;
+    }
+
+    .total-row.grand-total {
+        border-top: 2px solid black !important;
+    }
+
+    .bill-header {
+        border-bottom: 2px solid black !important;
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: flex-start !important;
+        text-align: left !important;
+    }
+
+    .bill-company-info {
+        text-align: left !important;
+        margin-bottom: 0 !important;
+        flex: 1 !important;
+        width: auto !important;
+    }
+
+    .bill-title-section {
+        text-align: right !important;
+        margin-top: 0 !important;
+        flex: 0 0 40% !important;
+        width: auto !important;
+    }
+
+    /* Ensure table borders are visible */
+    .bill-items-table,
+    .bill-items-table th,
+    .bill-items-table td {
+        border-color: black !important;
+    }
+
+    .bill-items-table th {
+        border-bottom: 2px solid black !important;
+    }
+
+    /* Page Setup */
+    @page {
+        size: A4;
+        margin: 10mm;
+    }
+}

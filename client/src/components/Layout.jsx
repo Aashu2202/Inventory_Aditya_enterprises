@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import Sidebar from './Sidebar';
+import CompanySelector from './CompanySelector';
 import { User, Bell, Search, Menu, X, LogOut } from 'lucide-react';
 import '../styles/Layout.css';
 
@@ -39,6 +40,9 @@ const Layout = ({ children }) => {
                     </div>
 
                     <div className="header-actions">
+                        <div className="company-selector-wrapper">
+                            <CompanySelector />
+                        </div>
                         <button className="icon-btn hide-mobile">
                             <Bell size={20} />
                             <span className="badge"></span>
